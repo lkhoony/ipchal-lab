@@ -1,0 +1,10 @@
+*.env
+!ipchal-lab.env.example
+cache/
+.venv/
+*.joblib
+*.csv
+*.parquet
+__pycache__/
+.superpowers/
+.DS_Store

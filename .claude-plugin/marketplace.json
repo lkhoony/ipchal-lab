@@ -1,0 +1,17 @@
+{
+  "name": "ipchal-lab",
+  "owner": {
+    "name": "lkhoony"
+  },
+  "plugins": [
+    {
+      "name": "ipchal-lab",
+      "source": {
+        "source": "archive",
+        "url": "https://github.com/lkhoony/ipchal-lab/archive/refs/heads/main.zip"
+      },
+      "description": "입찰 낙찰금액 예측 모델 실험실 (feature 추가, 실험, 서빙 요청·승인)",
+      "version": "0.1.0"
+    }
+  ]
+}
