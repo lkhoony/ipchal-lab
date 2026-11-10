@@ -68,8 +68,6 @@ def build_parser() -> argparse.ArgumentParser:
     leaf(g, "request", "id", reason=dict(required=True)); leaf(g, "list")
     leaf(g, "approve", "id", self_approve=dict(action="store_true"), yes=True)
     leaf(g, "reject", "id", note=dict(required=True)); leaf(g, "rollback", "version"); leaf(g, "status")
-    g = grp("admin", "관리자 1회 작업")
-    leaf(g, "init"); leaf(g, "seed", yes=True)
     return p
 
 
@@ -325,20 +323,6 @@ def cmd_serving(a, c):
     return 0
 
 
-def cmd_admin(a, c):
-    if c.s.role != "admin":
-        raise PermissionError("관리자만 할 수 있습니다 (설정의 ROLE=admin)")
-    if a.sub == "init":
-        from .admin import admin_init
-        done = admin_init(c.bq, c.s)
-        print("만든 것: " + ", ".join(done) if done else "이미 모두 만들어져 있습니다")
-    else:
-        from .seed import seed_all
-        added = seed_all(c.bq, c.user)
-        print(f"{len(added)}개 feature를 등록했습니다")
-    return 0
-
-
 def _use_bundled_libomp():
     """macOS: lightgbm은 Homebrew 경로에서만 libomp를 찾는다. Homebrew가 없는 PC를 위해
     scikit-learn에 들어 있는 libomp를 대체 경로로 잡고 한 번 다시 실행한다 (Homebrew libomp가 있으면 그쪽이 우선)."""
@@ -371,7 +355,7 @@ def main(argv=None, deps=None) -> int:
             return {"setup": cmd_setup, "login": cmd_login, "doctor": cmd_doctor}[a.cmd](a, deps)
         c = Ctx(deps, getattr(a, "yes_bytes", None))
         return {"data": cmd_data, "features": cmd_features, "experiment": cmd_experiment,
-                "serving": cmd_serving, "admin": cmd_admin}[a.cmd](a, c)
+                "serving": cmd_serving}[a.cmd](a, c)
     except TooExpensive as e:
         print(f"약 {e.bytes / 1024**3:.1f} GB를 조회합니다. 진행하려면 --yes-bytes {e.bytes} 을 붙여 다시 실행하세요", file=sys.stderr)
     except KeyError as e:

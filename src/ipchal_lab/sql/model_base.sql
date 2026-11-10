@@ -1,4 +1,4 @@
--- 기준 뷰 본문 (SELECT 만). admin init 이 CREATE VIEW 로 감싸고, 뷰가 없을 때는 이 SELECT 를 그대로 base 로 쓴다.
+-- 기준 뷰(VIEW_MODEL_BASE) 본문. 2026-11 최초 세팅 때 이 SELECT 로 뷰를 만들었다 (manifest 의 model_base_sha256 이 이 파일의 지문).
 -- (공고번호, 차수)당 1행. 같은 키가 여러 수집일(ingest_date)에 있으면 최신 수집일 행을 쓴다 (수집일 NULL 은 가장 오래된 것으로 본다).
 WITH
 l AS (

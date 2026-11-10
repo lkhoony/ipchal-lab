@@ -38,7 +38,8 @@ GCS  gs://GCS_BUCKET/GCS_PREFIX/
 
 - 수집 Job은 매일 나라장터 API를 호출해 BigQuery 원본 테이블에 공고·개찰 결과를 넣습니다. 이 Job은 별도 저장소에 있으며, ipchal-lab은 그 저장소와 Job을 건드리지 않습니다.
 - `VIEW_MODEL_BASE`는 **뷰**(저장된 쿼리)입니다. 따로 갱신하지 않아도 조회할 때마다 그 시점의 원본을 읽습니다. 그래서 어제 수집된 공고도 오늘 feature 계산에 바로 쓰입니다.
-- 뷰의 SQL은 `src/ipchal_lab/sql/model_base.sql`에 있고, 관리자가 `ipchal admin init`을 실행할 때 한 번 만들어집니다. 이미 있으면 다시 만들지 않습니다. 그래서 이 SQL 파일을 바꿔도 BigQuery의 뷰는 그대로입니다. 뷰를 바꾸려면 관리자가 따로 교체해야 하며, 이 절차는 아직 명령으로 제공하지 않습니다.
+- 뷰와 실험실 테이블 3개는 최초 세팅 때 관리자가 한 번 만들었습니다. 뷰의 SQL은 `src/ipchal_lab/sql/model_base.sql`에 기록으로 남아 있습니다. 이 파일을 바꿔도 BigQuery의 뷰는 그대로이며, 뷰를 바꾸려면 관리자가 따로 교체해야 합니다 (플러그인에는 그 명령이 없습니다).
+- 기존 feature 67개도 최초 세팅 때 등록표에 넣었습니다. 예전 Python 계산과 대조 검증을 마친 것이라 자동 검사는 생략했고, 2025년 데이터가 비어 있는 `전년동월_평균`만 초안입니다.
 
 ---
 
@@ -122,7 +123,7 @@ GCS  gs://GCS_BUCKET/GCS_PREFIX/
 |---|---|---|
 | 예측 REST 서버 | 서빙 결과물(GCS 파일) 형식만 정해져 있음 | 5장 계약대로 Cloud Run 서비스로 만들기 (별도 작업) |
 | 정기 자동 재학습 | 모델은 **승인할 때만** 학습됨. 데이터가 매일 쌓여도 모델은 그대로 | 운영 manifest의 feature로 매월 다시 학습해 새 버전을 만드는 Job + 자동 비교 후 관리자 승인 |
-| 기준 뷰 변경 절차 | `admin init`은 이미 있으면 건너뜀 | 뷰 교체 명령 + 지문 비교 경고 |
+| 기준 뷰 변경 절차 | 최초 세팅 때 한 번 만듦. 교체 명령 없음 | 뷰 교체 절차 + 지문 비교 경고 |
 | 운영 모니터링 | 없음 | 예측과 실제 결과를 매일 비교해 적중률 추적 |
 
 따라서 지금 "자동"인 것은 **데이터 수집**과 **뷰를 통한 최신 데이터 반영**뿐입니다. feature가 운영에 들어가는 일과 모델 학습·전환은 모두 **사람의 요청과 관리자 승인**으로만 일어납니다.
@@ -133,7 +134,7 @@ GCS  gs://GCS_BUCKET/GCS_PREFIX/
 
 공유 계정이 소유자 권한이라 GCP 권한으로는 막을 수 없습니다. 그래서 프로그램이 직접 막습니다.
 
-- 일반 사용자 권한으로 쓸 수 있는 BigQuery 테이블은 `TABLE_FEATURES`, `TABLE_EXPERIMENTS`뿐입니다. `TABLE_FEATURES_PROD`는 관리자의 승인·되돌리기 명령만 씁니다. 관리자 권한은 초기 설정 때문에 쓰기 범위가 넓지만, 명령들은 정해진 테이블에만 씁니다. DELETE·DROP·TRUNCATE·ALTER·MERGE는 누구든 거부합니다.
+- 일반 사용자 권한으로 쓸 수 있는 BigQuery 테이블은 `TABLE_FEATURES`, `TABLE_EXPERIMENTS`뿐입니다. `TABLE_FEATURES_PROD`는 관리자의 승인·되돌리기 명령만 씁니다. DELETE·DROP·TRUNCATE·ALTER·MERGE는 누구든 거부합니다.
 - 모든 쿼리는 미리 조회량을 계산(dry-run)하고 상한(`maximum_bytes_billed`)을 겁니다. 상한을 넘으면 사람에게 묻습니다.
 - GCS 쓰기는 `GCS_PREFIX/` 아래만 하고, 버전 폴더는 새로 만들기만 합니다. 삭제는 하지 않습니다.
 - Cloud Run, Scheduler, IAM은 건드리지 않습니다.

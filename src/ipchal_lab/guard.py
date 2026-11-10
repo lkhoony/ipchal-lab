@@ -17,7 +17,6 @@ class Permission(Enum):
     READ = 0
     LAB = 1
     PROD = 2
-    ADMIN = 3
 
 
 _DML = (exp.Insert, exp.Update, exp.Merge, exp.Delete, exp.Create, exp.Drop, exp.Command, exp.TruncateTable)
@@ -61,14 +60,10 @@ def check_sql(sql: str, settings: Settings, perm: Permission) -> None:
                 if t.args.get("db") or t.args.get("catalog"):
                     raise GuardError("임시 테이블 이름에는 데이터셋을 붙일 수 없습니다")
                 continue
-            if perm is Permission.ADMIN and (kind == "VIEW" or (kind == "TABLE" and not st.args.get("replace"))):
-                continue
-            raise GuardError("테이블·뷰 만들기는 관리자 초기 설정(ipchal admin init)에서만 할 수 있습니다")
+            raise GuardError("테이블·뷰는 만들 수 없습니다 (임시 테이블만 가능)")
         if isinstance(st, exp.Merge):
             raise GuardError("MERGE 문은 지원하지 않습니다 (INSERT 또는 UPDATE를 쓰세요)")
         if isinstance(st, (exp.Insert, exp.Update)):
-            if perm is Permission.ADMIN:
-                continue
             name = _name(st.this)
             if name not in ok:
                 raise GuardError(f"이 권한({perm.name})으로는 {name} 테이블에 쓸 수 없습니다")

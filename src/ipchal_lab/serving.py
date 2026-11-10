@@ -12,12 +12,12 @@ import platform
 import re
 from datetime import datetime, timezone
 from importlib.metadata import version as _libver
+from pathlib import Path
 
 import joblib
 import pandas as pd
 from google.api_core.exceptions import PreconditionFailed
 
-from .admin import SQL_DIR
 from .evaluate import _DAY, _Y
 from .experiments import get_experiment
 from .guard import Permission
@@ -156,7 +156,7 @@ def approve(bq, gcs, settings, exp_id: str, approver: str, self_approve: bool = 
         "categories": {c: [str(x) for x in vals] for c, vals in model.categories.items()},
         # 모델 파일은 ipchal_lab 클래스로 저장되므로 읽을 패키지 버전과 기준 뷰 SQL을 함께 남긴다
         "model_base_sha256": hashlib.sha256(
-            (SQL_DIR / "model_base.sql").read_text(encoding="utf-8").replace("\r\n", "\n").encode()).hexdigest(),
+            (Path(__file__).parent / "sql" / "model_base.sql").read_text(encoding="utf-8").replace("\r\n", "\n").encode()).hexdigest(),
         "libs": {"python": platform.python_version(),
                  **{k: _libver(k) for k in ("ipchal-lab", "lightgbm", "scikit-learn", "pandas", "numpy")}},
     }
