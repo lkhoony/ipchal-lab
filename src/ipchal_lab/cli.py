@@ -202,7 +202,7 @@ def cmd_doctor(a, deps):
     except PackageNotFoundError:
         v = None
     if a.plugin_version and v != a.plugin_version:
-        line(False, f"버전이 다릅니다 (CLI {v}, 플러그인 {a.plugin_version}). 업데이트가 필요합니다: uv tool install --managed-python --python 3.12 --reinstall https://github.com/lkhoony/ipchal-lab/archive/refs/heads/main.zip")
+        line(False, f"버전이 다릅니다 (CLI {v}, 플러그인 {a.plugin_version}). 업데이트가 필요합니다 (Claude에게 \"업데이트해 줘\"라고 말하세요)")
     else:
         line(True, f"버전 {v}")
     return 1 if bad else 0

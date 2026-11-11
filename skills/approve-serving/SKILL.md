@@ -18,11 +18,23 @@ description: 서빙 요청을 검토하고 승인·반려·되돌릴 때 쓴다.
 
 그다음 "운영에 반영할까요?"라고 예/아니오로 묻는다. 분명한 "예"("응", "네, 반영해 줘" 등)를 받은 경우에만 실행한다. 모호한 답이거나, 이전 대화에서 받은 동의이거나, 다른 실험에 대한 동의라면 다시 묻는다.
 
+## ipchal 실행 방법
+
+`ipchal` 은 이 플러그인의 데이터 폴더에 설치된 것만 쓴다. PATH에 있는 다른 `ipchal`·`uv` 는 쓰지 않는다. 이 문서에서 `ipchal <명령>` 이라고 쓴 것은 아래처럼 실행한다.
+- Mac: `"${CLAUDE_PLUGIN_DATA}/bin/ipchal" <명령>`
+- Windows (PowerShell): `& "${CLAUDE_PLUGIN_DATA}\bin\ipchal.exe" <명령>`
+
+설치·업데이트 (uv·Python·ipchal을 모두 데이터 폴더 안에 받는다. 몇 분 걸린다):
+- Mac: `sh "${CLAUDE_PLUGIN_ROOT}/scripts/install.sh" "${CLAUDE_PLUGIN_DATA}"`
+- Windows: `powershell -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}\scripts\install.ps1" "${CLAUDE_PLUGIN_DATA}"`
+
+설치 끝에 "PATH에 없다"는 경고가 나와도 정상이다. PATH나 셸 설정을 바꾸지 않는다 (플러그인을 지우면 깨끗이 지워지도록).
+
 ## 먼저 할 일
 
 1. `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` 을 읽어 `version` 값을 확인한다.
 2. `ipchal doctor --plugin-version <그 버전>` 을 실행한다.
-3. 실패하면(✗ 표시) 이 단계로 더 진행하지 말고 setup 스킬로 안내한다. 버전이 다르다고 나오면 `uv tool install --managed-python --python 3.12 --reinstall https://github.com/lkhoony/ipchal-lab/archive/refs/heads/main.zip` 을 안내하고 다시 확인한다.
+3. 실패하면(✗ 표시) 이 단계로 더 진행하지 말고 setup 스킬로 안내한다. `ipchal` 이 아직 없거나 버전이 다르다고 나오면 위의 설치·업데이트 명령을 실행하고 다시 확인한다.
 
 ## 안전 규칙
 

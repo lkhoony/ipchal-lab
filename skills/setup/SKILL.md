@@ -7,11 +7,23 @@ description: 처음 설치하고 로그인할 때 쓴다. "시작할래", "설�
 
 처음 쓰는 사람의 PC를 준비한다. 다른 스킬의 doctor가 실패했을 때도 여기로 온다. (이 스킬은 설정이 아직 없을 수 있으므로 doctor 실패가 정상이다.)
 
+## ipchal 실행 방법
+
+`ipchal` 은 이 플러그인의 데이터 폴더에 설치된 것만 쓴다. PATH에 있는 다른 `ipchal`·`uv` 는 쓰지 않는다. 이 문서에서 `ipchal <명령>` 이라고 쓴 것은 아래처럼 실행한다.
+- Mac: `"${CLAUDE_PLUGIN_DATA}/bin/ipchal" <명령>`
+- Windows (PowerShell): `& "${CLAUDE_PLUGIN_DATA}\bin\ipchal.exe" <명령>`
+
+설치·업데이트 (uv·Python·ipchal을 모두 데이터 폴더 안에 받는다. 몇 분 걸린다):
+- Mac: `sh "${CLAUDE_PLUGIN_ROOT}/scripts/install.sh" "${CLAUDE_PLUGIN_DATA}"`
+- Windows: `powershell -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}\scripts\install.ps1" "${CLAUDE_PLUGIN_DATA}"`
+
+설치 끝에 "PATH에 없다"는 경고가 나와도 정상이다. PATH나 셸 설정을 바꾸지 않는다 (플러그인을 지우면 깨끗이 지워지도록).
+
 ## 먼저 할 일
 
 1. `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` 을 읽어 `version` 값을 확인한다.
 2. `ipchal doctor --plugin-version <그 버전>` 을 실행한다.
-3. 이 스킬(setup)에서는 doctor가 실패하거나 `ipchal` 명령이 아직 없는 것이 정상이다. 오류로 멈추지 말고 아래 단계를 계속한다. 버전이 다르다고 나오면 `uv tool install --managed-python --python 3.12 --reinstall https://github.com/lkhoony/ipchal-lab/archive/refs/heads/main.zip` 을 안내한다.
+3. 이 스킬(setup)에서는 doctor가 실패하거나 `ipchal` 명령이 아직 없는 것이 정상이다. 오류로 멈추지 말고 아래 단계를 계속한다. 버전이 다르다고 나오면 아래 2단계(설치·업데이트)를 한다.
 
 ## 안전 규칙
 
@@ -26,13 +38,8 @@ description: 처음 설치하고 로그인할 때 쓴다. "시작할래", "설�
 ## 단계
 
 1. 운영체제를 묻거나 확인한다 (Mac / Windows).
-2. `uv`(파이썬과 프로그램을 알아서 설치해 주는 도구)가 있는지 확인한다 (`uv --version`). 없으면 설치한다. Python·Homebrew·git은 따로 설치하지 않는다.
-   - Mac: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-   - Windows (PowerShell): `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
-   - 설치 직후에는 PATH(명령을 찾는 경로)에 아직 반영되지 않아 `uv` 를 못 찾을 수 있다. 그때는 전체 경로로 실행한다: Mac `~/.local/bin/uv`, Windows `"$env:USERPROFILE\.local\bin\uv.exe"`. 이어서 `uv tool update-shell` 을 한 번 실행해 두면 Claude 앱을 다시 시작한 뒤부터는 `uv`·`ipchal` 만으로 실행된다.
-3. CLI 설치(업데이트도 같은 명령): `uv tool install --managed-python --python 3.12 --reinstall https://github.com/lkhoony/ipchal-lab/archive/refs/heads/main.zip`
-   - Python 3.12를 uv가 직접 내려받아 쓰므로 PC에 Python이 없어도 된다. 몇 분 걸릴 수 있다고 미리 알려 준다.
-   - 설치 후 `ipchal --help` 로 확인한다. 못 찾으면 전체 경로로 실행한다: Mac `~/.local/bin/ipchal`, Windows `"$env:USERPROFILE\.local\bin\ipchal.exe"`. 이번 대화에서는 이후 명령도 전체 경로로 실행한다.
+2. 위의 설치·업데이트 명령을 운영체제에 맞게 실행한다. 실행 전에 이렇게 알려 준다: "프로그램(ipchal)과 그 프로그램 전용 Python을 이 플러그인 전용 폴더에 내려받습니다. 몇 분 걸리고, 다른 프로그램이나 작업 폴더에는 아무것도 바꾸지 않습니다. 나중에 플러그인을 지우면 같이 지워집니다." Python·Homebrew·git은 따로 설치하지 않는다.
+3. 끝나면 `ipchal --help` 로 설치를 확인한다.
 4. 담당자에게 받은 파일 두 개(설정 파일 `ipchal-lab.env`, 데이터 안내서 `ipchal-data-guide.md`)가 어디 있는지 묻는다. 없으면 "담당자에게 설정 파일을 받으세요"라고 안내하고 멈춘다. 위치를 모르면 파일을 채팅창에 끌어다 놓게 하거나, 보통 다운로드(Downloads) 폴더에 있다고 안내한다. Windows 경로는 `C:\Users\이름\Downloads\ipchal-lab.env` 처럼 역슬래시(\)로 쓰며, 경로는 항상 큰따옴표로 감싼다.
 5. 사용자 이름(결과에 만든 사람으로 남는다)을 묻고 `ipchal setup --env-file "<설정파일 경로>" --guide "<안내서 경로>" --name "<이름>"` 을 실행한다.
 6. `ipchal login` 을 실행한다. 브라우저 창이 열리면 담당자가 알려 준 공유 계정으로 로그인하고 허용을 누르라고 안내한다.

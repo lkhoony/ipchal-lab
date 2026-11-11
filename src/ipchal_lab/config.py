@@ -1,6 +1,7 @@
-"""설정 읽기: 환경변수 -> ~/.ipchal-lab/ipchal-lab.env. 사용자 이름은 같은 폴더 user.env."""
+"""설정 읽기: 환경변수 -> 설정 폴더(CONFIG_DIR)의 ipchal-lab.env. 사용자 이름은 같은 폴더 user.env."""
 from __future__ import annotations
 
+import sys
 from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from pathlib import Path
@@ -42,6 +43,11 @@ class Settings:
 
 
 def CONFIG_DIR(home: Path | None = None) -> Path:
+    """설정·로그인 폴더. 플러그인 데이터 폴더(<데이터>/tools/ipchal-lab)에 설치됐으면 <데이터>/config
+    (플러그인을 지우면 같이 지워진다), 아니면 ~/.ipchal-lab."""
+    p = Path(sys.prefix)
+    if home is None and p.parent.name == "tools" and p.parents[1].parent.name == "data":
+        return p.parents[1] / "config"
     return (home or Path.home()) / ".ipchal-lab"
 
 

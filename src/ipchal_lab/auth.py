@@ -1,4 +1,4 @@
-"""로그인: 브라우저 로그인 결과를 ~/.ipchal-lab/credentials.json 에 저장해 재사용."""
+"""로그인: 브라우저 로그인 결과를 설정 폴더(CONFIG_DIR)의 credentials.json 에 저장해 재사용."""
 from __future__ import annotations
 
 from .config import CONFIG_DIR, Settings
