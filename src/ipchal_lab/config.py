@@ -34,7 +34,6 @@ class Settings:
     gcs_bucket: str
     gcs_prefix: str
     max_bytes_per_query: int
-    role: str = "user"
     user_name: str | None = None
 
     def table(self, key: str) -> str:
@@ -70,15 +69,11 @@ def load_settings(env: Mapping[str, str] | None = None, home: Path | None = None
         env = os.environ
     d = CONFIG_DIR(home)
     vals = {**_parse(d / "ipchal-lab.env"), **_parse(d / "user.env")}
-    vals.update({k: v for k, v in env.items() if k in KEYS + ["ROLE", "USER_NAME"] and v != ""})
-    if not vals.get("ROLE"):
-        vals["ROLE"] = "user"
-    if vals["ROLE"] not in ("user", "admin"):
-        raise ConfigError("ROLE 은 user 또는 admin 이어야 합니다")
+    vals.update({k: v for k, v in env.items() if k in KEYS + ["USER_NAME"] and v != ""})
     missing = [k for k in KEYS if not vals.get(k)]
     if missing:
         raise ConfigError("설정에 없는 항목: " + ", ".join(missing)
-                          + f" (관리자에게 설정 파일을 받아 {d} 폴더에 넣으세요)")
+                          + f" (담당자에게 설정 파일을 받아 {d} 폴더에 넣으세요)")
     kw = {f.name: vals[f.name.upper()] for f in fields(Settings) if f.name.upper() in vals}
     try:
         kw["max_bytes_per_query"] = int(kw["max_bytes_per_query"])

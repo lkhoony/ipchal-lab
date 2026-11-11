@@ -37,11 +37,6 @@ def _status(e) -> str:
     return e.get("serving_status") or "없음"
 
 
-def _admin(settings, what):
-    if settings.role != "admin":
-        raise PermissionError(f"관리자만 {what}할 수 있습니다 (관리자 설정 파일에 ROLE=admin 이 있어야 합니다)")
-
-
 def request_serving(bq, exp_id: str, user: str, reason: str) -> None:
     st = _status(get_experiment(bq, exp_id))
     if st not in ("없음", "반려"):
@@ -51,7 +46,6 @@ request_reason = @reason WHERE experiment_id = @id""", {"id": exp_id, "by": user
 
 
 def reject(bq, exp_id: str, approver: str, note: str) -> None:
-    _admin(bq.s, "서빙 요청을 반려")
     st = _status(get_experiment(bq, exp_id))
     if st != "요청":
         raise ValueError(f"실험 '{exp_id}'은(는) 서빙 요청 상태가 아닙니다 (지금 '{st}')")
@@ -80,7 +74,7 @@ def _write_serving(gcs, settings, version, user, previous, gen):
     try:
         _put(gcs, _name(settings, "serving.json"), json.dumps(body, ensure_ascii=False), gen)
     except PreconditionFailed:
-        raise RuntimeError("다른 관리자가 먼저 바꿨습니다. 서빙 상태를 다시 확인하세요 (지금 서빙은 바뀌지 않았습니다)") from None
+        raise RuntimeError("다른 사람이 먼저 바꿨습니다. 서빙 상태를 다시 확인하세요 (지금 서빙은 바뀌지 않았습니다)") from None
 
 
 def _now():
@@ -124,14 +118,10 @@ def _frozen_features(bq, e) -> list[FeatureDef]:
     return out
 
 
-def approve(bq, gcs, settings, exp_id: str, approver: str, self_approve: bool = False, progress=print) -> str:
-    _admin(settings, "서빙을 승인")
+def approve(bq, gcs, settings, exp_id: str, approver: str, progress=print) -> str:
     e = get_experiment(bq, exp_id)
     if _status(e) != "요청":
         raise ValueError(f"실험 '{exp_id}'은(는) 서빙 요청 상태가 아닙니다 (지금 '{_status(e)}')")
-    if e.get("requested_by") == approver and not self_approve:
-        raise ValueError("요청자와 승인자가 같습니다. 다른 관리자가 승인하는 것이 원칙입니다. "
-                         "관리자가 혼자라면 --self-approve 를 붙여 다시 실행하세요")
     current, gen = _read_json(gcs, _name(settings, "serving.json"))
     feats = _frozen_features(bq, e)
     names = [f.name for f in feats]
@@ -173,7 +163,6 @@ model_version = @mv WHERE experiment_id = @id AND serving_status = '요청'""",
 
 
 def rollback(bq, gcs, settings, version: str, user: str) -> None:
-    _admin(settings, "되돌리기를")
     if not re.fullmatch(r"v\d{2,}", version or ""):
         raise ValueError(f"버전 이름 '{version}'이(가) 올바르지 않습니다. v01 처럼 v와 두 자리 이상 숫자로 쓰세요")
     served = bq.query_df(f"SELECT COUNT(*) AS n FROM `{bq.s.table('TABLE_FEATURES_PROD')}` WHERE model_version = @v",

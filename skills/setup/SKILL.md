@@ -33,9 +33,9 @@ description: 처음 설치하고 로그인할 때 쓴다. "시작할래", "설�
 3. CLI 설치(업데이트도 같은 명령): `uv tool install --managed-python --python 3.12 --reinstall https://github.com/lkhoony/ipchal-lab/archive/refs/heads/main.zip`
    - Python 3.12를 uv가 직접 내려받아 쓰므로 PC에 Python이 없어도 된다. 몇 분 걸릴 수 있다고 미리 알려 준다.
    - 설치 후 `ipchal --help` 로 확인한다. 못 찾으면 전체 경로로 실행한다: Mac `~/.local/bin/ipchal`, Windows `"$env:USERPROFILE\.local\bin\ipchal.exe"`. 이번 대화에서는 이후 명령도 전체 경로로 실행한다.
-4. 관리자에게 받은 파일 두 개(설정 파일 `ipchal-lab.env`, 데이터 안내서 `ipchal-data-guide.md`)가 어디 있는지 묻는다. 없으면 "관리자에게 설정 파일을 받으세요"라고 안내하고 멈춘다. 위치를 모르면 파일을 채팅창에 끌어다 놓게 하거나, 보통 다운로드(Downloads) 폴더에 있다고 안내한다. Windows 경로는 `C:\Users\이름\Downloads\ipchal-lab.env` 처럼 역슬래시(\)로 쓰며, 경로는 항상 큰따옴표로 감싼다.
+4. 담당자에게 받은 파일 두 개(설정 파일 `ipchal-lab.env`, 데이터 안내서 `ipchal-data-guide.md`)가 어디 있는지 묻는다. 없으면 "담당자에게 설정 파일을 받으세요"라고 안내하고 멈춘다. 위치를 모르면 파일을 채팅창에 끌어다 놓게 하거나, 보통 다운로드(Downloads) 폴더에 있다고 안내한다. Windows 경로는 `C:\Users\이름\Downloads\ipchal-lab.env` 처럼 역슬래시(\)로 쓰며, 경로는 항상 큰따옴표로 감싼다.
 5. 사용자 이름(결과에 만든 사람으로 남는다)을 묻고 `ipchal setup --env-file "<설정파일 경로>" --guide "<안내서 경로>" --name "<이름>"` 을 실행한다.
-6. `ipchal login` 을 실행한다. 브라우저 창이 열리면 관리자가 알려 준 공유 계정으로 로그인하고 허용을 누르라고 안내한다.
+6. `ipchal login` 을 실행한다. 브라우저 창이 열리면 담당자가 알려 준 공유 계정으로 로그인하고 허용을 누르라고 안내한다.
 7. 마지막으로 `ipchal doctor` 를 실행해 모두 ✓ 인지 확인하고, 다음으로 "어떤 데이터가 있어?" 같은 질문을 해 보라고 알려 준다.
 
-문제가 생기면 출력된 한 줄 메시지를 그대로 쉬운 말로 풀어 주고, 해결이 안 되면 관리자에게 문의하라고 한다.
+문제가 생기면 출력된 한 줄 메시지를 그대로 쉬운 말로 풀어 주고, 해결이 안 되면 담당자에게 문의하라고 한다.

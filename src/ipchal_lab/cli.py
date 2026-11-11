@@ -66,7 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     leaf(g, "list"); leaf(g, "show", "id")
     g = grp("serving", "서빙")
     leaf(g, "request", "id", reason=dict(required=True)); leaf(g, "list")
-    leaf(g, "approve", "id", self_approve=dict(action="store_true"), yes=True)
+    leaf(g, "approve", "id", yes=True)
     leaf(g, "reject", "id", note=dict(required=True)); leaf(g, "rollback", "version"); leaf(g, "status")
     return p
 
@@ -141,7 +141,7 @@ def cmd_setup(a, deps):
     cfg = CONFIG_DIR(home)
     env = Path(a.env_file)
     if not env.is_file() or (a.guide and not Path(a.guide).is_file()):
-        raise ValueError("파일을 찾을 수 없습니다. 관리자에게 설정 파일을 받으세요")
+        raise ValueError("파일을 찾을 수 없습니다. 담당자에게 설정 파일을 받으세요")
     cfg.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(env, cfg / "ipchal-lab.env")
     if a.guide:
@@ -194,7 +194,7 @@ def cmd_doctor(a, deps):
         line(True, "모델 라이브러리(lightgbm)를 불러올 수 있습니다")
     except OSError as e:
         hint = ("Microsoft Visual C++ 재배포 패키지를 설치하세요: https://aka.ms/vs/17/release/vc_redist.x64.exe"
-                if sys.platform == "win32" else "관리자에게 이 메시지를 전달하세요")
+                if sys.platform == "win32" else "담당자에게 이 메시지를 전달하세요")
         line(False, f"모델 라이브러리(lightgbm)를 불러올 수 없습니다 ({e}). {hint}")
     from importlib.metadata import PackageNotFoundError, version
     try:
@@ -212,7 +212,7 @@ def cmd_data(a, c):
     if a.sub == "guide":
         p = CONFIG_DIR() / "ipchal-data-guide.md"
         if not p.is_file():
-            raise ValueError("데이터 안내서가 없습니다. 관리자에게 받아 `ipchal setup --guide` 로 설치하세요")
+            raise ValueError("데이터 안내서가 없습니다. 담당자에게 받아 `ipchal setup --guide` 로 설치하세요")
         print(p.read_text(encoding="utf-8"))
     elif a.sub == "tables":
         for k in KEYS:
@@ -307,10 +307,7 @@ def cmd_serving(a, c):
         df = list_experiments(c.bq, 100)
         _frame(df[df["serving_status"] == "요청"])
     elif a.sub == "approve":
-        user = c.user
-        if a.self_approve and get_experiment(c.bq, a.id).get("requested_by") == user:
-            print("주의: 요청자와 승인자가 같습니다. 다른 관리자가 승인하는 것이 원칙입니다")
-        print("승인했습니다. 서빙 버전:", approve(c.bq, c.gcs, c.s, a.id, user, a.self_approve))
+        print("승인했습니다. 서빙 버전:", approve(c.bq, c.gcs, c.s, a.id, c.user))
     elif a.sub == "reject":
         reject(c.bq, a.id, c.user, a.note)
         print(f"반려했습니다: {a.id}")
