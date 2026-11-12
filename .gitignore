@@ -8,3 +8,4 @@ cache/
 __pycache__/
 .superpowers/
 .DS_Store
+ipchal-data-guide.md
