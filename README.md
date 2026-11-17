@@ -11,7 +11,26 @@
 
 ## 설치
 
-Code 탭(또는 Claude Code) 입력창에 한 줄씩 보냅니다.
+**1. 작업 폴더 만들기.** 문서 폴더 안에 `ipchal` 폴더를 새로 만들고, 담당자에게 받은 `ipchal-lab.env` 와 `ipchal-data-guide.md` 를 넣습니다.
+
+- Mac: `~/Documents/ipchal/`
+- Windows: `C:\Users\<이름>\Documents\ipchal\`
+
+Code 탭에서는 이 폴더를 작업 폴더로 고르고, 터미널이라면 이 폴더에서 `claude` 를 실행합니다. 앞으로 만드는 SQL 같은 작업물도 여기에 저장됩니다.
+
+**2. 플러그인 설치.** 쓰는 쪽 하나만 하면 됩니다. 같은 PC면 한쪽에 설치한 것이 다른 쪽에도 보입니다.
+
+*A. Claude 데스크톱 앱 (Code 탭)*
+
+1. 대화 입력창 왼쪽 **+** → **플러그인** → **플러그인 관리**
+2. 오른쪽 위 **추가** → **마켓플레이스 추가** → **저장소에서 추가**
+3. URL에 아래 주소를 넣고 **동기화**
+   ```
+   https://raw.githubusercontent.com/lkhoony/ipchal-lab/main/.claude-plugin/marketplace.json
+   ```
+4. 목록에 나온 `ipchal-lab` 을 설치합니다.
+
+*B. Claude Code (터미널)* 입력창에 한 줄씩 보냅니다. 범위를 물으면 **사용자(User)**, 그다음 `/reload-plugins`.
 
 ```
 /plugin marketplace add https://raw.githubusercontent.com/lkhoony/ipchal-lab/main/.claude-plugin/marketplace.json
@@ -20,9 +39,7 @@ Code 탭(또는 Claude Code) 입력창에 한 줄씩 보냅니다.
 /plugin install ipchal-lab@ipchal-lab
 ```
 
-범위를 물으면 **사용자(User)** 를 고릅니다. `/reload-plugins` (또는 앱 재시작) 후 **"시작할래"** 라고 말하세요. Claude가 프로그램 설치 → 설정 파일 위치 → 이름 → Google 로그인 → 점검을 차례로 안내합니다. 점검이 모두 ✓ 면 끝입니다.
-
-데스크톱 앱에서 `/plugin` 이 안 되면 터미널에 Claude Code를 설치해 같은 두 줄로 한 번 설치하세요. 같은 PC면 앱에도 보입니다.
+Claude Code가 없으면 먼저 설치합니다.
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash      # Mac
@@ -30,6 +47,8 @@ curl -fsSL https://claude.ai/install.sh | bash      # Mac
 ```powershell
 irm https://claude.ai/install.ps1 | iex             # Windows (PowerShell)
 ```
+
+**3. 시작.** **"시작할래"** 라고 말하세요. Claude가 프로그램 설치 → 설정 파일 위치 → 이름 → Google 로그인 → 점검을 차례로 안내합니다. 설정 파일 위치를 물으면 1번에서 만든 폴더라고 답하면 됩니다. 점검이 모두 ✓ 면 끝입니다.
 
 ## 업데이트
 
