@@ -10,6 +10,7 @@ KEYS = ("GCP_PROJECT BQ_DATASET BQ_LOCATION TABLE_BID_LIST TABLE_BSIS_AMOUNT TAB
         "TABLE_OPN_STD_SCSBID TABLE_SCSBID_STTUS TABLE_TARGET_INDSTRYTY TABLE_INDSTRYTY_BASE "
         "VIEW_MODEL_BASE TABLE_FEATURES TABLE_FEATURES_PROD TABLE_EXPERIMENTS GCS_BUCKET GCS_PREFIX "
         "MAX_BYTES_PER_QUERY").split()
+OPTIONAL_KEYS = ["USER_NAME", "MONTHLY_BUDGET_KRW", "KRW_PER_USD", "BILLING_EXPORT_TABLE"]
 
 
 class ConfigError(Exception):
@@ -36,6 +37,9 @@ class Settings:
     gcs_prefix: str
     max_bytes_per_query: int
     user_name: str | None = None
+    monthly_budget_krw: float = 100_000  # 이번 달 GCP 사용액이 이 금액을 넘을 조회는 실행하지 않는다
+    krw_per_usd: float = 1_440           # 조회 단가(달러)를 원으로 바꿀 때 쓰는 환율
+    billing_export_table: str = ""       # 청구 내보내기 표 '프로젝트.데이터셋.gcp_billing_export_v1_…' (없으면 조회 비용만)
 
     def table(self, key: str) -> str:
         """'TABLE_FEATURES' -> '프로젝트.데이터셋.이름' (VIEW_* 도 가능)."""
@@ -75,14 +79,16 @@ def load_settings(env: Mapping[str, str] | None = None, home: Path | None = None
         env = os.environ
     d = CONFIG_DIR(home)
     vals = {**_parse(d / "ipchal-lab.env"), **_parse(d / "user.env")}
-    vals.update({k: v for k, v in env.items() if k in KEYS + ["USER_NAME"] and v != ""})
+    vals.update({k: v for k, v in env.items() if k in KEYS + OPTIONAL_KEYS and v != ""})
     missing = [k for k in KEYS if not vals.get(k)]
     if missing:
         raise ConfigError("설정에 없는 항목: " + ", ".join(missing)
                           + f" (담당자에게 설정 파일을 받아 {d} 폴더에 넣으세요)")
     kw = {f.name: vals[f.name.upper()] for f in fields(Settings) if f.name.upper() in vals}
-    try:
-        kw["max_bytes_per_query"] = int(kw["max_bytes_per_query"])
-    except ValueError:
-        raise ConfigError("MAX_BYTES_PER_QUERY 는 숫자여야 합니다") from None
+    for k, typ in (("max_bytes_per_query", int), ("monthly_budget_krw", float), ("krw_per_usd", float)):
+        if k in kw:
+            try:
+                kw[k] = typ(str(kw[k]).replace(",", ""))
+            except ValueError:
+                raise ConfigError(f"{k.upper()} 는 숫자여야 합니다") from None
     return Settings(**kw)

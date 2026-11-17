@@ -1,4 +1,4 @@
-"""안전한 BigQuery 실행: 가드 -> dry-run -> 한도 비교 -> maximum_bytes_billed 지정."""
+"""안전한 BigQuery 실행: 가드 -> dry-run -> 한도 비교 -> 월 사용액 한도 -> maximum_bytes_billed 지정."""
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -8,6 +8,7 @@ from google.cloud import bigquery
 
 from .auth import get_credentials
 from .config import Settings
+from .cost import Budget
 from .guard import Permission, check_sql
 
 MIN_BILLED = 10 * 1024**2
@@ -23,6 +24,13 @@ class TooExpensive(Exception):
 class Bq:
     def __init__(self, settings: Settings, client: bigquery.Client | None = None):
         self.s, self._client = settings, client
+        self._budget = None
+
+    @property
+    def budget(self) -> Budget:
+        if self._budget is None:
+            self._budget = Budget(self.s, self.client)
+        return self._budget
 
     @property
     def client(self):
@@ -56,10 +64,12 @@ class Bq:
         # (maximum_bytes_billed 는 스크립트 전체 합계에 적용된다)
         multi = len([x for x in sqlglot.parse(sql, read="bigquery") if x is not None]) > 1
         billed = limit if multi else min(limit, max(int(dry * 1.2), MIN_BILLED))
+        self.budget.check(billed if multi else max(dry, MIN_BILLED))
         job = self.client.query(sql, job_config=self._config(params, maximum_bytes_billed=billed),
                                 location=self.s.bq_location)
         res = job.result()
         self.last_bytes_billed = getattr(job, "total_bytes_billed", None)
+        self.budget.add_used(self.last_bytes_billed)
         self.last_dml_rows = getattr(job, "num_dml_affected_rows", None)
         return res  # 여러 문장 스크립트는 마지막 문장의 결과
 

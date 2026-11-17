@@ -68,6 +68,7 @@ def build_parser() -> argparse.ArgumentParser:
     leaf(g, "request", "id", reason=dict(required=True)); leaf(g, "list")
     leaf(g, "approve", "id", yes=True)
     leaf(g, "reject", "id", note=dict(required=True)); leaf(g, "rollback", "version"); leaf(g, "status")
+    sub.add_parser("cost", help="이번 달 GCP 사용액과 한도")
     return p
 
 
@@ -184,6 +185,10 @@ def cmd_doctor(a, deps):
         line(True, "BigQuery 조회가 됩니다")
     except Exception as e:
         line(False, f"BigQuery: {e}")
+    try:
+        line(True, c.bq.budget.report().splitlines()[2])
+    except Exception as e:
+        line(False, str(e))
     try:
         ok = c.gcs.exists()
         line(bool(ok), "GCS 저장소에 접근할 수 있습니다" if ok else "GCS 저장소를 찾을 수 없습니다")
@@ -347,12 +352,19 @@ def main(argv=None, deps=None) -> int:
     deps = deps or {}
     a = build_parser().parse_args(argv)
     from .bq import TooExpensive
+    from .cost import OverBudget
+    c = None
     try:
         if a.cmd in ("setup", "login", "doctor"):
             return {"setup": cmd_setup, "login": cmd_login, "doctor": cmd_doctor}[a.cmd](a, deps)
         c = Ctx(deps, getattr(a, "yes_bytes", None))
+        if a.cmd == "cost":
+            print(c.bq.budget.report())
+            return 0
         return {"data": cmd_data, "features": cmd_features, "experiment": cmd_experiment,
                 "serving": cmd_serving}[a.cmd](a, c)
+    except OverBudget as e:
+        print(str(e), file=sys.stderr)
     except TooExpensive as e:
         print(f"약 {e.bytes / 1024**3:.1f} GB를 조회합니다. 진행하려면 --yes-bytes {e.bytes} 을 붙여 다시 실행하세요", file=sys.stderr)
     except KeyError as e:
@@ -365,6 +377,9 @@ def main(argv=None, deps=None) -> int:
         if not isinstance(e, (GoogleAPICallError, GoogleAuthError)):
             raise
         print(f"Google 서비스 오류: {getattr(e, 'message', None) or e}", file=sys.stderr)
+    finally:
+        if c is not None and c._bq is not None and c._bq._budget is not None and (msg := c._bq.budget.summary()):
+            print(msg, file=sys.stderr)
     return 1
 
 
