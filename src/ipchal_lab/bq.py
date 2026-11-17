@@ -47,7 +47,8 @@ class Bq:
                       else bigquery.ScalarQueryParameter(k, "DATE", v) if isinstance(v, date)
                       else bigquery.ScalarQueryParameter(k, "STRING", None if v is None else str(v))
                       for k, v in params.items()]
-        return bigquery.QueryJobConfig(query_parameters=params or [], **kw)
+        return bigquery.QueryJobConfig(query_parameters=params or [],
+                                       default_dataset=f"{self.s.gcp_project}.{self.s.bq_dataset}", **kw)
 
     def dry_run_bytes(self, sql: str, params=None) -> int:
         job = self.client.query(sql, job_config=self._config(params, dry_run=True, use_query_cache=False),

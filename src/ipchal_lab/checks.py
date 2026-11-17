@@ -115,7 +115,7 @@ def leak_problems(rows: pd.DataFrame, kind: str) -> list[str]:
     if same.all():
         return []
     bad_days = o.index[~same].get_level_values("d").nunique()
-    return [f"미래 정보를 쓰는 것 같습니다: 개찰 6일 전부터의 결과(y, 최종낙찰금액, 예정가격, 참여업체수)를 지우면 "
+    return [f"미래 정보를 쓰는 것 같습니다: 개찰 6일 전부터의 결과(예가율 y, 최종낙찰금액, 예정가격, 참여업체수)를 지우면 "
             f"값이 바뀝니다 ({(~same).sum()}건, {bad_days}일). 과거 통계는 개찰일시 < t − 7일 결과만 쓰세요. "
             "미래 정보를 안 써도 ORDER BY 에 동률이 있으면 실행마다 값이 달라질 수 있습니다: "
             "ORDER BY 끝에 `공고번호`, `차수` 를 붙이세요"]

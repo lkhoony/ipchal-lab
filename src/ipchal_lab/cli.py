@@ -20,7 +20,7 @@ TABLE_DESC = {
     "TABLE_BID_LIST": "공고 목록", "TABLE_BSIS_AMOUNT": "공고별 기초금액", "TABLE_OPN_STD_BID": "개찰 대상 공고(표준)",
     "TABLE_OPN_STD_SCSBID": "개찰 결과·낙찰 정보(표준)", "TABLE_SCSBID_STTUS": "낙찰 현황",
     "TABLE_TARGET_INDSTRYTY": "공고별 대상 업종", "TABLE_INDSTRYTY_BASE": "업종 기준 정보",
-    "VIEW_MODEL_BASE": "모델용 기준 뷰 (공고당 1행, 결과 y 포함)", "TABLE_FEATURES": "feature 등록표",
+    "VIEW_MODEL_BASE": "모델용 기준 뷰 (공고당 1행, 결과 예가율(열 이름 y) 포함). 조회·통계의 기본", "TABLE_FEATURES": "feature 등록표",
     "TABLE_FEATURES_PROD": "서빙 중인 feature 세트", "TABLE_EXPERIMENTS": "실험 기록",
 }
 
@@ -53,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     d = sub.add_parser("doctor", help="설정·로그인·접근·버전 확인")
     d.add_argument("--plugin-version")
     g = grp("data", "데이터 보기")
-    leaf(g, "guide"); leaf(g, "tables"); leaf(g, "describe", "key"); leaf(g, "query", "sql", yes=True)
+    leaf(g, "guide"); leaf(g, "tables"); leaf(g, "describe", "key"); leaf(g, "query", "sql", raw=dict(action="store_true", help="원본 테이블도 읽기 (기본은 model_base 등 가공된 표만)"), yes=True)
     g = grp("features", "feature 등록표")
     leaf(g, "list", prod=dict(action="store_true"), all=dict(action="store_true"))
     leaf(g, "show", "name"); leaf(g, "retire", "name")
@@ -127,6 +127,19 @@ def _report(r):
     for x in r.problems:
         print(f"  - {x}")
     print(f"예상 조회량 {r.bytes_train / 1024**3:.2f} GB, 빈 값 비율 {r.null_rate:.1%}, 미래 정보 점검 {r.leak_days_checked}일치")
+
+
+RAW_KEYS = ("TABLE_BID_LIST", "TABLE_BSIS_AMOUNT", "TABLE_OPN_STD_BID", "TABLE_OPN_STD_SCSBID", "TABLE_SCSBID_STTUS",
+            "TABLE_TARGET_INDSTRYTY", "TABLE_INDSTRYTY_BASE")
+
+
+def raw_tables_in(sql: str, s) -> list[str]:
+    """SQL이 읽는 원본 테이블 이름들 (데이터셋을 붙였든 안 붙였든)."""
+    import sqlglot
+    from sqlglot import exp
+    raw = {getattr(s, k.lower()) for k in RAW_KEYS}
+    names = {t.name for st in sqlglot.parse(sql, read="bigquery") if st is not None for t in st.find_all(exp.Table)}
+    return sorted(names & raw)
 
 
 def _read(path):
@@ -230,8 +243,12 @@ def cmd_data(a, c):
         for f in c.bq.client.get_table(c.s.table(key)).schema:
             print(f"{f.name}  ({f.field_type})")
     else:
+        raw = raw_tables_in(a.sql, c.s)
+        if raw and not a.raw:
+            raise ValueError(f"원본 테이블({', '.join(raw)})을 읽는 조회입니다. 기본은 model_base 입니다. "
+                             "원본이 꼭 필요하면 --raw 를 붙여 다시 실행하세요")
         try:
-            _frame(c.bq.query_df(a.sql, perm=Permission.READ))
+            _frame(c.bq.query_df(a.sql, perm=Permission.READ).rename(columns={"y": "예가율"}))
         except GuardError as e:
             raise GuardError(f"읽기 전용입니다: {e}") from None
     return 0
@@ -378,7 +395,8 @@ def main(argv=None, deps=None) -> int:
             raise
         print(f"Google 서비스 오류: {getattr(e, 'message', None) or e}", file=sys.stderr)
     finally:
-        if c is not None and c._bq is not None and c._bq._budget is not None and (msg := c._bq.budget.summary()):
+        b = getattr(c and c._bq, "_budget", None)
+        if b is not None and (msg := b.summary()):
             print(msg, file=sys.stderr)
     return 1
 
