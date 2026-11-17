@@ -8,10 +8,10 @@
 
 자세한 내용은 [사용자 매뉴얼](docs/user-manual.md)에 있다. 운영에서 데이터·feature·모델이 흐르는 방식은 [운영 워크플로](docs/operations-workflow.md)를 본다.
 
-Claude 데스크톱 앱 말고는 아무것도 미리 설치하지 않아도 된다 (Python·Homebrew·git 불필요).
+Claude 데스크톱 앱(Code 탭) 또는 Claude Code(터미널) 말고는 아무것도 미리 설치하지 않아도 된다 (Python·Homebrew·git 불필요).
 
-1. Claude 앱 Code 탭에서 `/plugin marketplace add https://raw.githubusercontent.com/lkhoony/ipchal-lab/main/.claude-plugin/marketplace.json`
-2. `/plugin install ipchal-lab@ipchal-lab`
+1. Code 탭 또는 Claude Code에서 `/plugin marketplace add lkhoony/ipchal-lab`
+2. `/plugin install ipchal-lab@ipchal-lab` (범위는 사용자), 그다음 `/reload-plugins` 또는 재시작
 3. Claude에게 **"시작할래"** 라고 말한다. 프로그램 설치, 설정 파일, 로그인, 점검을 안내에 따라 진행한다. 담당자에게 받은 설정 파일과 데이터 안내서를 미리 준비해 둔다.
 
 설치 위치: uv·Python 3.12·`ipchal`·다운로드 캐시·설정·로그인 정보가 모두 플러그인 전용 데이터 폴더(`~/.claude/plugins/data/ipchal-lab-ipchal-lab/`)에만 들어간다 (`scripts/install.sh`, `scripts/install.ps1`). PATH·셸 설정·작업 폴더는 건드리지 않고, 플러그인을 삭제하면 같이 지워진다.
